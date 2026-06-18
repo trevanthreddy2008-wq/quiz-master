@@ -18,30 +18,39 @@ jobs:
         rm -rf app build.gradle settings.gradle gradle.properties
         mkdir -p app/src/main/res/layout
         
+        # Define modern platform behaviors
         echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" > gradle.properties
         echo "android.useAndroidX=true" >> gradle.properties
         echo "android.enableJetifier=true" >> gradle.properties
         
-        # Simplified standard build architecture syntax
-        echo "buildscript {
-            repositories { google(); mavenCentral() }
-            dependencies { classpath 'com.android.tools.build:gradle:7.4.2' }
-        }
-        allprojects {
-            repositories { google(); mavenCentral() }
+        # Root-level configuration using contemporary plugins block syntax
+        echo "plugins {
+            id 'com.android.application' version '8.1.1' apply false
+            id 'com.android.library' version '8.1.1' apply false
         }" > build.gradle
         
-        echo "include ':app'
-        rootProject.name = 'QuizMaster'" > settings.gradle
+        # Centralized dependency settings file configuration
+        echo "pluginManagement {
+            repositories { google(); mavenCentral(); gradlePluginPortal() }
+        }
+        dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories { google(); mavenCentral() }
+        }
+        rootProject.name = 'QuizMaster'
+        include ':app'" > settings.gradle
         
-        echo "apply plugin: 'com.android.application'
+        # Refactored app module build script matching the parent plugin versions
+        echo "plugins {
+            id 'com.android.application'
+        }
         android {
             namespace 'com.example.quizmaster'
-            compileSdkVersion 33
+            compileSdk 33
             defaultConfig {
                 applicationId 'com.example.quizmaster'
-                minSdkVersion 24
-                targetSdkVersion 33
+                minSdk 24
+                targetSdk 33
                 versionCode 1
                 versionName '1.0'
             }
@@ -51,15 +60,16 @@ jobs:
             implementation 'com.google.android.material:material:1.9.0'
         }" > app/build.gradle
 
-        [ -f AndroidManifest.xml ] && cp AndroidManifest.xml app/src/main/ || echo "Manifest missing"
-        [ -f activity_main.xml ] && cp activity_*.xml app/src/main/res/layout/ || echo "Layouts missing"
+        # Safely copy down the loose layout assets provided by Claude
+        [ -f AndroidManifest.xml ] && cp AndroidManifest.xml app/src/main/ || echo "No Manifest found"
+        [ -f activity_main.xml ] && cp activity_*.xml app/src/main/res/layout/ || echo "No layout files found"
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
     - name: Build APK File
       run: |
-        gradle wrapper --gradle-version 7.5
+        gradle wrapper --gradle-version 8.1.1
         chmod +x gradlew
         ./gradlew assembleDebug
 
