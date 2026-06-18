@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:id="@+id/tvLevelLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            tools:text="Level 1"
+            xmlns:tools="http://schemas.android.com/tools" />
+
+        <TextView
+            android:id="@+id/tvProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            tools:text="Question 1 / 10" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/progressTrack"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_progress_track">
+
+        <View
+            android:id="@+id/progressFill"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_level_unlocked" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tvCategory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/bg_pill_gold"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:textColor="#92400E"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        tools:text="GEOGRAPHY" />
+
+    <TextView
+        android:id="@+id/tvQuestion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textColor="@color/text_primary"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        tools:text="What is the capital of France?" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="28dp"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btnOption0"
+            style="@style/OptionButtonStyle"
+            tools:text="Option A" />
+
+        <Button
+            android:id="@+id/btnOption1"
+            style="@style/OptionButtonStyle"
+            tools:text="Option B" />
+
+        <Button
+            android:id="@+id/btnOption2"
+            style="@style/OptionButtonStyle"
+            tools:text="Option C" />
+
+        <Button
+            android:id="@+id/btnOption3"
+            style="@style/OptionButtonStyle"
+            tools:text="Option D" />
+
+    </LinearLayout>
+
+</LinearLayout>

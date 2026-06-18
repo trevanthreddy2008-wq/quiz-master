@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="redeem_requests_admin">Redeem Requests (Admin)</string>
+    <string name="no_pending_requests">No pending requests yet.</string>
+    <string name="mark_complete">Mark Complete</string>
+    <string name="mark_request_complete">Mark as Complete?</string>
+    <string name="mark_request_complete_message">Have you sent this player a code? Mark it complete to hide from the pending list.</string>
+    <string name="request_marked_complete">Request marked complete!</string>
+    <string name="view_requests">View Requests</string>
+    <string name="yes">Yes</string>
+    <string name="login_title">Welcome to Quiz Master</string>
+    <string name="login_subtitle">Log in or create an account to start playing</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Password</string>
+    <string name="btn_login">Log In</string>
+    <string name="btn_create_account">Create Account</string>
+    <string name="sign_out">Sign out</string>
+    <string name="admin_bonus_button_format">Admin: +%1$d Coins</string>
+    <string name="admin_bonus_granted">Admin bonus added!</string>
+    <string name="select_level">Select a Level</string>
+    <string name="coins_format">%1$d coins</string>
+    <string name="redeem">Redeem</string>
+    <string name="question_progress_format">Question %1$d / %2$d</string>
+    <string name="level_format">Level %1$d</string>
+    <string name="level_complete">Level Complete!</string>
+    <string name="score_format">Score: %1$d / %2$d</string>
+    <string name="coins_earned_format">+%1$d coins earned</string>
+    <string name="next_level">Next Level</string>
+    <string name="back_to_levels">Back to Levels</string>
+    <string name="redeem_title">Redeem Coins</string>
+    <string name="your_balance">Your balance</string>
+    <string name="redeem_progress_format">%1$d / %2$d coins</string>
+    <string name="request_button_format">Request Redeem Code (%1$d Coins)</string>
+    <string name="redeem_history">Your requests</string>
+    <string name="no_codes_yet">No requests yet. Keep playing to reach 1000 coins!</string>
+    <string name="contact_dialog_title">How should we reach you?</string>
+    <string name="contact_dialog_hint">Email or WhatsApp number</string>
+    <string name="contact_dialog_message">The app owner will send your code as soon as they see your request.</string>
+    <string name="request_submitted">Request submitted! The owner will respond soon.</string>
+    <string name="not_enough_coins">You need at least %1$d coins to request a code.</string>
+    <string name="cancel">Cancel</string>
+    <string name="status_pending">Pending</string>
+    <string name="status_fulfilled">Code received</string>
+    <string name="ok">OK</string>
+    <string name="all_levels_complete">You\'ve completed every level!</string>
+</resources>
