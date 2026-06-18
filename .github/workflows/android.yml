@@ -15,9 +15,15 @@ jobs:
 
     - name: Auto Create Project Structure
       run: |
+        # Clear any accidental messy layouts and rebuild fresh directories
+        rm -rf app build.gradle settings.gradle gradle.properties
         mkdir -p app/src/main/res/layout
         
-        # Fixed Gradle plugins setup
+        # Write explicit base settings
+        echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" > gradle.properties
+        echo "android.useAndroidX=true" >> gradle.properties
+        echo "android.enableJetifier=true" >> gradle.properties
+        
         echo "plugins { id 'com.android.application' version '8.0.2' apply false }" > build.gradle
         
         echo "pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
@@ -42,8 +48,9 @@ jobs:
             implementation 'com.google.android.material:material:1.9.0'
         }" > app/build.gradle
 
-        [ -f AndroidManifest.xml ] && mv AndroidManifest.xml app/src/main/
-        [ -f activity_main.xml ] && mv activity_*.xml app/src/main/res/layout/ || true
+        # Safely migrate your XML layouts and Manifest files into position
+        [ -f AndroidManifest.xml ] && cp AndroidManifest.xml app/src/main/ || echo "Manifest not at root"
+        [ -f activity_main.xml ] && cp activity_*.xml app/src/main/res/layout/ || echo "Layouts not at root"
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
@@ -51,6 +58,7 @@ jobs:
     - name: Build APK File
       run: |
         gradle wrapper --gradle-version 8.0
+        chmod +x gradlew
         ./gradlew assembleDebug
 
     - name: Upload Finished App
@@ -58,5 +66,4 @@ jobs:
       with:
         name: QuizMasterGame
         path: app/build/outputs/apk/debug/app-debug.apk
-
-      
+        
