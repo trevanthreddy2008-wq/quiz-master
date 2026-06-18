@@ -1,4 +1,4 @@
-name: Build Android APK
+  name: Build Android APK
 on: [push, workflow_dispatch]
 
 jobs:
@@ -10,78 +10,89 @@ jobs:
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
-        java-version: "17"
-        distribution: "temurin"
+        java-version: '17'
+        distribution: 'temurin'
 
-    - name: Auto Create Project Structure
+    - name: Auto Create Clean Project Structure
       run: |
-        rm -rf app build.gradle settings.gradle gradle.properties
+        # Force remove any broken or partial layout directories to prevent cache clashing
+        rm -rf app build.gradle settings.gradle gradle.properties res
+        
+        # Build pristine native sub-directories 
         mkdir -p app/src/main/res/layout
         
-        # 1. Create properties configuration
+        # 1. Create global background configurations
         cat << 'EOF' > gradle.properties
         org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
         android.useAndroidX=true
         android.enableJetifier=true
         EOF
         
-        # 2. Create master build script configuration
-        cat << 'EOF' > build.gradle
-        buildscript {
-            repositories {
-                google()
-                mavenCentral()
-            }
-            dependencies {
-                classpath "com.android.tools.build:gradle:8.0.2"
-            }
-        }
-        allprojects {
-            repositories {
-                google()
-                mavenCentral()
-            }
-        }
-        EOF
-        
-        # 3. Create settings file configuration
+        # 2. Create the master plugin resolution management map
         cat << 'EOF' > settings.gradle
+        pluginManagement {
+            repositories {
+                google()
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        }
+        dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
         rootProject.name = "QuizMaster"
-        include ":app"
+        include ':app'
         EOF
         
-        # 4. Create app module configuration configuration
+        # 3. Create the global parent build instructions file
+        cat << 'EOF' > build.gradle
+        plugins {
+            id 'com.android.application' version '8.1.1' apply false
+            id 'com.android.library' version '8.1.1' apply false
+        }
+        EOF
+        
+        # 4. Create the localized application framework module script
         cat << 'EOF' > app/build.gradle
-        apply plugin: "com.android.application"
+        plugins {
+            id 'com.android.application'
+        }
 
         android {
-            namespace "com.example.quizmaster"
+            namespace 'com.example.quizmaster'
             compileSdk 33
+
             defaultConfig {
-                applicationId "com.example.quizmaster"
+                applicationId 'com.example.quizmaster'
                 minSdk 24
                 targetSdk 33
                 versionCode 1
-                versionName "1.0"
+                versionName '1.0'
             }
         }
 
         dependencies {
-            implementation "androidx.appcompat:appcompat:1.6.1"
-            implementation "com.google.android.material:material:1.9.0"
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+            implementation 'com.google.android.material:material:1.9.0'
         }
         EOF
 
-        # 5. Route project layout assets into target locations
-        [ -f AndroidManifest.xml ] && cp AndroidManifest.xml app/src/main/ || echo "No Manifest"
-        [ -f activity_main.xml ] && cp activity_*.xml app/src/main/res/layout/ || echo "No Layouts"
+        # 5. Relocate asset layout structures into position safely
+        [ -f AndroidManifest.xml ] && cp AndroidManifest.xml app/src/main/ || echo "No explicit manifest found"
+        [ -f activity_main.xml ] && cp activity_*.xml app/src/main/res/layout/ || echo "No custom activity screens found"
 
-    - name: Setup Gradle
+    - name: Setup Centralized Gradle Engine
       uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: 8.1.1
 
-    - name: Build APK File
+    - name: Build Executable App Artifact
       run: |
-        gradle wrapper --gradle-version 8.0
+        gradle wrapper
         chmod +x gradlew
         ./gradlew assembleDebug
 
