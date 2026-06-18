@@ -19,6 +19,8 @@ jobs:
         rm -rf app build.gradle settings.gradle gradle.properties res
         mkdir -p app/src/main/res/layout
         mkdir -p app/src/main/res/values
+        mkdir -p app/src/main/res/xml
+        mkdir -p app/src/main/res/mipmap
         
         # 1. Create global background configurations
         cat << 'EOF' > gradle.properties
@@ -80,7 +82,7 @@ jobs:
         }
         EOF
 
-        # 5. Create standard base theme configurations to prevent manifest crashes
+        # 5. Create standard base theme and string configurations
         cat << 'EOF' > app/src/main/res/values/themes.xml
         <resources>
             <style name="Theme.QuizMaster" parent="Theme.MaterialComponents.DayNight.NoActionBar">
@@ -100,7 +102,38 @@ jobs:
         </resources>
         EOF
 
-        # 6. Relocate layout and manifest files safely
+        # 6. Create required XML tracking and backup rules files
+        cat << 'EOF' > app/src/main/res/xml/backup_rules.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <full-backup-content />
+        EOF
+
+        cat << 'EOF' > app/src/main/res/xml/data_extraction_rules.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <data-extraction-rules>
+            <cloud-backup />
+            <device-transfer />
+        </data-extraction-rules>
+        EOF
+
+        # 7. Create placeholder launch icons using system colors
+        cat << 'EOF' > app/src/main/res/mipmap/ic_launcher.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+            <background android:drawable="@android:color/darker_gray"/>
+            <foreground android:drawable="@android:color/white"/>
+        </adaptive-icon>
+        EOF
+
+        cat << 'EOF' > app/src/main/res/mipmap/ic_launcher_round.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+            <background android:drawable="@android:color/darker_gray"/>
+            <foreground android:drawable="@android:color/white"/>
+        </adaptive-icon>
+        EOF
+
+        # 8. Relocate layout and manifest files safely
         [ -f AndroidManifest.xml ] && cp AndroidManifest.xml app/src/main/ || echo "No explicit manifest found"
         ls activity_*.xml >/dev/null 2>&1 && cp activity_*.xml app/src/main/res/layout/ || echo "No root layout xmls found"
 
