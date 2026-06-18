@@ -15,23 +15,12 @@ jobs:
 
       - name: Create Project Files
         run: |
-          mkdir -p app/src/main/java
-          mkdir -p app/src/main/res/values
-          
-          # Create settings.gradle
-          printf 'rootProject.name = "QuizMaster"\ninclude ":app"\n' > settings.gradle
-          
-          # Create build.gradle (root)
-          printf 'plugins {\n    id "com.android.application" version "8.1.1" apply false\n    id "org.jetbrains.kotlin.android" version "1.8.20" apply false\n}' > build.gradle
-          
-          # Create app/build.gradle
-          printf 'plugins {\n    id "com.android.application"\n    id "org.jetbrains.kotlin.android"\n}\nandroid {\n    namespace "com.example.quizmaster"\n    compileSdk 34\n    defaultConfig {\n        applicationId "com.example.quizmaster"\n        minSdk 24\n        targetSdk 34\n    }\n}' > app/build.gradle
-          
-          # Create a basic AndroidManifest.xml
-          printf '<?xml version="1.0" encoding="utf-8"?>\n<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.quizmaster" />' > app/src/main/AndroidManifest.xml
-          
-          # Create a basic strings.xml to avoid "resource not found" errors
-          printf '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <string name="app_name">QuizMaster</string>\n</resources>' > app/src/main/res/values/strings.xml
+          mkdir -p app/src/main/java app/src/main/res/values
+          printf 'pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }\nrootProject.name = "QuizMaster"\ninclude ":app"' > settings.gradle
+          printf 'plugins { id "com.android.application" version "8.1.1" apply false; id "org.jetbrains.kotlin.android" version "1.8.20" apply false }' > build.gradle
+          printf 'plugins { id "com.android.application"; id "org.jetbrains.kotlin.android" }\nandroid { namespace "com.example.quizmaster"; compileSdk 34; defaultConfig { applicationId "com.example.quizmaster"; minSdk 24; targetSdk 34 } }' > app/build.gradle
+          printf '<?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.quizmaster" />' > app/src/main/AndroidManifest.xml
+          printf '<?xml version="1.0" encoding="utf-8"?><resources><string name="app_name">QuizMaster</string></resources>' > app/src/main/res/values/strings.xml
 
       - name: Build with Gradle
         uses: gradle/actions/setup-gradle@v3
