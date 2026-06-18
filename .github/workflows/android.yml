@@ -85,6 +85,16 @@ jobs:
         [ -f AndroidManifest.xml ] && cp AndroidManifest.xml app/src/main/ || echo "No explicit manifest found"
         [ -f activity_main.xml ] && cp activity_*.xml app/src/main/res/layout/ || echo "No custom activity screens found"
 
+        # 6. Auto-patch XML layouts to fix any missing tools namespace declarations automatically
+        for f in app/src/main/res/layout/*.xml; do
+            if [ -f "$f" ]; then
+                if ! grep -q 'xmlns:tools' "$f"; then
+                    echo "Injecting missing tools namespace into $f"
+                    sed -i 's|xmlns:android="http://schemas.android.com/apk/res/android"|xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"|g' "$f"
+                fi
+            fi
+        done
+
     - name: Setup Centralized Gradle Engine
       uses: gradle/actions/setup-gradle@v3
       with:
