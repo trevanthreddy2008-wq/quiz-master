@@ -13,18 +13,18 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Intelligent Project Assembler & AdMob Integrator
+    - name: Ultimate Project Assembler & AdMob Shield
       shell: python
       run: |
         import os, shutil, re
 
-        # 1. Clear out any bad cache/legacy structures safely
+        # 1. Clear out any legacy paths to prevent build conflicts
         for item in ['app', 'build.gradle', 'settings.gradle', 'gradle.properties']:
             if os.path.exists(item):
                 if os.path.isdir(item): shutil.rmtree(item)
                 else: os.remove(item)
 
-        # Create structural baselines
+        # Build baseline compilation tree
         os.makedirs("app/src/main/res/layout", exist_ok=True)
         os.makedirs("app/src/main/res/drawable", exist_ok=True)
         os.makedirs("app/src/main/res/values", exist_ok=True)
@@ -32,37 +32,43 @@ jobs:
         os.makedirs("app/src/main/res/mipmap", exist_ok=True)
         os.makedirs("app/src/main/java", exist_ok=True)
 
-        # 2. Automatically detect your project package name from the source code
+        # 2. Dynamic package name and activity analyzer
         detected_package = "com.example.quizmaster"
+        main_activity_name = "MainActivity"
         found_source = False
 
         for root, dirs, files in os.walk("."):
-            if any(p in root for p in ["./app", "./.github", "./.git"]): continue
+            norm_root = root.replace("\\", "/")
+            if any(p in norm_root.split("/") for p in ["app", ".github", ".git", "build"]): continue
             for f in files:
-                full_path = os.path.join(root, f)
-                if f.endswith(".java") or f.endswith(".kt"):
+                if f.endswith((".java", ".kt")):
+                    full_path = os.path.join(root, f)
                     with open(full_path, "r", encoding="utf-8", errors="ignore") as sf:
                         content = sf.read()
                     pkg_match = re.search(r"package\s+([a-zA-Z0-9_.]+);", content)
                     if pkg_match and not found_source:
                         detected_package = pkg_match.group(1)
                         found_source = True
+                    if "Activity" in f and main_activity_name == "MainActivity":
+                        main_activity_name = f.split(".")[0]
 
-        print(f"-> Verified App Package Domain: {detected_package}")
+        print(f"-> Detected App Package ID: {detected_package}")
+        print(f"-> Detected Launcher Activity: {main_activity_name}")
 
-        # 3. Sort, clean, and map all repository assets to their true compiler targets
+        # 3. Smart Asset Router (Classifies and moves files based on contents)
+        manifest_copied = False
         for root, dirs, files in os.walk("."):
-            if any(p in root for p in ["./app", "./.github", "./.git"]): continue
+            norm_root = root.replace("\\", "/")
+            if any(p in norm_root.split("/") for p in ["app", ".github", ".git", "build"]): continue
             for f in files:
                 full_path = os.path.join(root, f)
                 
-                # Relocate Core Manifest
                 if f == "AndroidManifest.xml":
                     shutil.copy(full_path, "app/src/main/AndroidManifest.xml")
+                    manifest_copied = True
                     continue
-                
-                # Sort Source Code and match package structure
-                if f.endswith(".java") or f.endswith(".kt"):
+
+                if f.endswith((".java", ".kt")):
                     with open(full_path, "r", encoding="utf-8", errors="ignore") as sf:
                         content = sf.read()
                     pkg_match = re.search(r"package\s+([a-zA-Z0-9_.]+);", content)
@@ -72,31 +78,73 @@ jobs:
                     shutil.copy(full_path, os.path.join(pkg_dir, f))
                     continue
 
-                # Clean and migrate layout views
-                if f.endswith(".xml") and any(x in f for x in ["activity_", "dialog_", "fragment_", "item_"]):
-                    target_path = os.path.join("app/src/main/res/layout", f)
-                    shutil.copy(full_path, target_path)
-                    with open(target_path, "r", encoding="utf-8") as lf:
-                        l_text = lf.read()
-                    l_text = re.sub(r'\s*tools:[a-zA-Z0-9_]+="[^"]*"', '', l_text)
-                    l_text = re.sub(r"\s*tools:[a-zA-Z0-9_]+='[^']*'", '', l_text)
-                    l_text = re.sub(r'\s*xmlns:tools="[^"]*"', '', l_text)
-                    l_text = re.sub(r"\s*xmlns:tools='[^']*'", '', l_text)
-                    with open(target_path, "w", encoding="utf-8") as lf:
-                        lf.write(l_text)
-                    continue
-
-                # Capture graphical assets/drawables
                 if f.endswith((".png", ".jpg", ".jpeg", ".webp", ".gif")):
                     shutil.copy(full_path, os.path.join("app/src/main/res/drawable", f.lower()))
                     continue
 
-                # Capture drawable configuration vector maps
-                if f.endswith(".xml") and ("drawable" in root.lower() or any(x in f for x in ["bg_", "ic_", "btn_", "shape_"])):
-                    shutil.copy(full_path, os.path.join("app/src/main/res/drawable", f.lower()))
-                    continue
+                if f.endswith(".xml"):
+                    with open(full_path, "r", encoding="utf-8", errors="ignore") as xf:
+                        xml_content = xf.read()
+                    
+                    if "<manifest" in xml_content and not manifest_copied:
+                        shutil.copy(full_path, "app/src/main/AndroidManifest.xml")
+                        manifest_copied = True
+                    elif "layout_width" in xml_content or "layout_height" in xml_content:
+                        target_path = os.path.join("app/src/main/res/layout", f)
+                        shutil.copy(full_path, target_path)
+                        # Sanitize layout file namespaces
+                        xml_content = re.sub(r'\s*tools:[a-zA-Z0-9_]+="[^"]*"', '', xml_content)
+                        xml_content = re.sub(r"\s*tools:[a-zA-Z0-9_]+='[^']*'", '', xml_content)
+                        xml_content = re.sub(r'\s*xmlns:tools="[^"]*"', '', xml_content)
+                        xml_content = re.sub(r"\s*xmlns:tools='[^']*'", '', xml_content)
+                        with open(target_path, "w", encoding="utf-8") as lf:
+                            lf.write(xml_content)
+                    elif any(tag in xml_content for tag in ["<vector", "<shape", "<selector", "<layer-list", "<ripple"]):
+                        shutil.copy(full_path, os.path.join("app/src/main/res/drawable", f.lower()))
+                    elif "<resources" in xml_content and not any(x in f for x in ["themes", "styles", "strings"]):
+                        shutil.copy(full_path, os.path.join("app/src/main/res/values", f))
 
-        # 4. Generate configurations with AdMob repositories enabled
+        # 4. Manifest Safeguard: Ensure AdMob App ID always exists
+        target_manifest = "app/src/main/AndroidManifest.xml"
+        if os.path.exists(target_manifest):
+            with open(target_manifest, "r", encoding="utf-8") as mf:
+                m_text = mf.read()
+            if "xmlns:tools" not in m_text and "<manifest" in m_text:
+                m_text = m_text.replace("<manifest", '<manifest xmlns:tools="http://schemas.android.com/tools"')
+            if "com.google.android.gms.ads.APPLICATION_ID" not in m_text:
+                admob_meta = '\n        <meta-data\n            android:name="com.google.android.gms.ads.APPLICATION_ID"\n            android:value="ca-app-pub-3940256099942544~3347511713"/>'
+                if "</application>" in m_text:
+                    m_text = m_text.replace("</application>", admob_meta + "\n    </application>")
+                with open(target_manifest, "w", encoding="utf-8") as mf:
+                    mf.write(m_text)
+        else:
+            # Generate a clean complete manifest if repository was missing one entirely
+            fallback_manifest = f"""<?xml version="1.0" encoding="utf-8"?>
+            <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+                <application
+                    android:allowBackup="true"
+                    android:dataExtractionRules="@xml/data_extraction_rules"
+                    android:fullBackupContent="@xml/backup_rules"
+                    android:icon="@mipmap/ic_launcher"
+                    android:label="@string/app_name"
+                    android:roundIcon="@mipmap/ic_launcher_round"
+                    android:supportsRtl="true"
+                    android:theme="@style/Theme.QuizMaster">
+                    <meta-data
+                        android:name="com.google.android.gms.ads.APPLICATION_ID"
+                        android:value="ca-app-pub-3940256099942544~3347511713"/>
+                    <activity android:name=".{main_activity_name}" android:exported="true">
+                        <intent-filter>
+                            <action android:name="android.intent.action.MAIN" />
+                            <category android:name="android.intent.category.LAUNCHER" />
+                        </intent-filter>
+                    </activity>
+                </application>
+            </manifest>"""
+            with open(target_manifest, "w", encoding="utf-8") as f:
+                f.write(fallback_manifest)
+
+        # 5. Write System Properties & Gradle Structure Configurations
         with open("gradle.properties", "w") as fp:
             fp.write("org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8\nandroid.useAndroidX=true\nandroid.enableJetifier=true\n")
 
@@ -108,15 +156,15 @@ jobs:
         with open("build.gradle", "w") as bg:
             bg.write("plugins { id 'com.android.application' version '8.1.1' apply false\nid 'com.android.library' version '8.1.1' apply false }\n")
 
-        # INJECTING GOOGLE ADMOB HERE SO IT STAYS IN YOUR APK
+        # Keeping your AdMob dependencies fully loaded and ready
         app_gradle_content = f"""plugins {{ id 'com.android.application' }}
         android {{
             namespace '{detected_package}'
-            compileSdk 33
+            compileSdk 34
             defaultConfig {{
                 applicationId '{detected_package}'
                 minSdk 24
-                targetSdk 33
+                targetSdk 34
                 versionCode 1
                 versionName '1.0'
             }}
@@ -129,7 +177,7 @@ jobs:
         with open("app/build.gradle", "w") as ag:
             ag.write(app_gradle_content)
 
-        # 5. Fallback safety generation to satisfy system requirements
+        # 6. Fallback asset creation for smooth compilations
         with open("app/src/main/res/values/themes.xml", "w") as th:
             th.write('<resources><style name="Theme.QuizMaster" parent="Theme.MaterialComponents.DayNight.NoActionBar"><item name="colorPrimary">#6200EE</item><item name="colorSecondary">#03DAC6</item></style></resources>')
         with open("app/src/main/res/values/strings.xml", "w") as st:
