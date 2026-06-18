@@ -17,8 +17,13 @@ jobs:
       run: |
         mkdir -p app/src/main/res/layout
         
-        echo "plugins { id 'com.android.application' version '8.1.1' apply false }" > build.gradle
-        echo "include ':app'" > settings.gradle
+        # Fixed Gradle plugins setup
+        echo "plugins { id 'com.android.application' version '8.0.2' apply false }" > build.gradle
+        
+        echo "pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+        dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }
+        rootProject.name = 'QuizMaster'
+        include ':app'" > settings.gradle
         
         echo "plugins { id 'com.android.application' }
         android {
@@ -45,7 +50,7 @@ jobs:
 
     - name: Build APK File
       run: |
-        gradle wrapper
+        gradle wrapper --gradle-version 8.0
         ./gradlew assembleDebug
 
     - name: Upload Finished App
@@ -53,4 +58,5 @@ jobs:
       with:
         name: QuizMasterGame
         path: app/build/outputs/apk/debug/app-debug.apk
-        
+
+      
