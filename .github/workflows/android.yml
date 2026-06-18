@@ -151,10 +151,9 @@ jobs:
         with open("gradle.properties", "w") as fp:
             fp.write("org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8\nandroid.useAndroidX=true\nandroid.enableJetifier=true\n")
 
+        # Removed dependencyResolutionManagement context block entirely to eliminate repository matching errors
         with open("settings.gradle", "w") as settings:
             settings.write('pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }\n')
-            # Changed to PREFER_SETTINGS to prevent third-party dependency initialization crashes
-            settings.write('dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS); repositories { google(); mavenCentral() } }\n')
             settings.write('rootProject.name = "QuizMaster"\ninclude ":app"\n')
 
         with open("build.gradle", "w") as bg:
@@ -169,7 +168,7 @@ jobs:
             plugins_block += "    id 'org.jetbrains.kotlin.android'\n"
         plugins_block += "}"
 
-        # Setup standard core layouts and AdMob components
+        # Setup standard core layouts and AdMob components inside isolated scope
         deps_block = """dependencies {
             implementation 'androidx.appcompat:appcompat:1.6.1'
             implementation 'com.google.android.material:material:1.9.0'
@@ -191,8 +190,27 @@ jobs:
                 versionName '1.0'
                 multiDexEnabled true
             }}
+            compileOptions {{
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }}
+        """
+        if has_kotlin:
+            app_gradle_content += """    compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+            kotlinOptions {
+                jvmTarget = '17'
+            }\n"""
+            
+        app_gradle_content += f"""}}
+        repositories {{
+            google()
+            mavenCentral()
         }}
         {deps_block}"""
+        
         with open("app/build.gradle", "w") as ag:
             ag.write(app_gradle_content)
 
