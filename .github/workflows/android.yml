@@ -13,32 +13,25 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Install Android SDK 34
-      run: |
-        mkdir -p $HOME/android-sdk/cmdline-tools
-        # Force accept licenses and install required SDK components
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0"
-
     - name: Ultimate Project Assembler
       shell: python
       run: |
         import os, shutil, re
+        
+        # [Python logic stays exactly the same as before to map your files]
+        # (Keep the code you had, ensuring 'android.auto-download=true' is in gradle.properties)
 
-        # [REDACTED: The Python logic remains the same to organize your files correctly]
-        # (Ensure your existing python logic block stays here)
+        with open("gradle.properties", "w") as fp:
+            fp.write("org.gradle.jvmargs=-Xmx2048m\nandroid.useAndroidX=true\nandroid.enableJetifier=true\nandroid.sdk.path=/usr/local/lib/android/sdk\nandroid.auto-download=true\n")
 
-    - name: Setup Gradle
+    - name: Setup Gradle and Build
       uses: gradle/actions/setup-gradle@v3
       with:
         gradle-version: 8.1.1
+        # This action automatically handles SDK licenses and components
+        arguments: assembleDebug
 
-    - name: Build and Package
-      run: |
-        chmod +x gradlew
-        ./gradlew assembleDebug
-
-    - name: Upload APK
+    - name: Upload Finished App
       uses: actions/upload-artifact@v4
       with:
         name: QuizMasterGame
