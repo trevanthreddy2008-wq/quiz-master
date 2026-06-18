@@ -32,15 +32,18 @@ jobs:
         os.makedirs("app/src/main/res/mipmap", exist_ok=True)
         os.makedirs("app/src/main/java", exist_ok=True)
 
-        # 2. Dynamic package name and activity analyzer
+        # 2. Dynamic package name, language, and activity analyzer
         detected_package = "com.example.quizmaster"
         main_activity_name = "MainActivity"
         found_source = False
+        has_kotlin = False
 
         for root, dirs, files in os.walk("."):
             norm_root = root.replace("\\", "/")
             if any(p in norm_root.split("/") for p in ["app", ".github", ".git", "build"]): continue
             for f in files:
+                if f.endswith(".kt"):
+                    has_kotlin = True
                 if f.endswith((".java", ".kt")):
                     full_path = os.path.join(root, f)
                     with open(full_path, "r", encoding="utf-8", errors="ignore") as sf:
@@ -54,6 +57,7 @@ jobs:
 
         print(f"-> Detected App Package ID: {detected_package}")
         print(f"-> Detected Launcher Activity: {main_activity_name}")
+        print(f"-> Kotlin files found in project: {has_kotlin}")
 
         # 3. Smart Asset Router (Classifies and moves files based on contents)
         manifest_copied = False
@@ -118,7 +122,6 @@ jobs:
                 with open(target_manifest, "w", encoding="utf-8") as mf:
                     mf.write(m_text)
         else:
-            # Generate a clean complete manifest if repository was missing one entirely
             fallback_manifest = f"""<?xml version="1.0" encoding="utf-8"?>
             <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
                 <application
@@ -150,14 +153,33 @@ jobs:
 
         with open("settings.gradle", "w") as settings:
             settings.write('pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }\n')
-            settings.write('dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }\n')
+            # Changed to PREFER_SETTINGS to prevent third-party dependency initialization crashes
+            settings.write('dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS); repositories { google(); mavenCentral() } }\n')
             settings.write('rootProject.name = "QuizMaster"\ninclude ":app"\n')
 
         with open("build.gradle", "w") as bg:
-            bg.write("plugins { id 'com.android.application' version '8.1.1' apply false\nid 'com.android.library' version '8.1.1' apply false }\n")
+            bg.write("plugins {\n    id 'com.android.application' version '8.1.1' apply false\n    id 'com.android.library' version '8.1.1' apply false\n")
+            if has_kotlin:
+                bg.write("    id 'org.jetbrains.kotlin.android' version '1.8.20' apply false\n")
+            bg.write("}\n")
 
-        # Keeping your AdMob dependencies fully loaded and ready
-        app_gradle_content = f"""plugins {{ id 'com.android.application' }}
+        # Dynamic Plugin generation based on source types
+        plugins_block = "plugins {\n    id 'com.android.application'\n"
+        if has_kotlin:
+            plugins_block += "    id 'org.jetbrains.kotlin.android'\n"
+        plugins_block += "}"
+
+        # Setup standard core layouts and AdMob components
+        deps_block = """dependencies {
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+            implementation 'com.google.android.material:material:1.9.0'
+            implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+            implementation 'com.google.android.gms:play-services-ads:23.1.0'"""
+        if has_kotlin:
+            deps_block += "\n    implementation 'androidx.core:core-ktx:1.10.1'"
+        deps_block += "\n}"
+
+        app_gradle_content = f"""{plugins_block}
         android {{
             namespace '{detected_package}'
             compileSdk 34
@@ -167,17 +189,14 @@ jobs:
                 targetSdk 34
                 versionCode 1
                 versionName '1.0'
+                multiDexEnabled true
             }}
         }}
-        dependencies {{
-            implementation 'androidx.appcompat:appcompat:1.6.1'
-            implementation 'com.google.android.material:material:1.9.0'
-            implementation 'com.google.android.gms:play-services-ads:23.1.0'
-        }}"""
+        {deps_block}"""
         with open("app/build.gradle", "w") as ag:
             ag.write(app_gradle_content)
 
-        # 6. Fallback asset creation for smooth compilations (Fixed the de.write typo here)
+        # 6. Fallback asset generation for smooth compilations
         with open("app/src/main/res/values/themes.xml", "w") as th:
             th.write('<resources><style name="Theme.QuizMaster" parent="Theme.MaterialComponents.DayNight.NoActionBar"><item name="colorPrimary">#6200EE</item><item name="colorSecondary">#03DAC6</item></style></resources>')
         with open("app/src/main/res/values/strings.xml", "w") as st:
