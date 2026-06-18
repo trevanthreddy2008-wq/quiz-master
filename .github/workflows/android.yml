@@ -15,10 +15,8 @@ jobs:
 
     - name: Auto Create Clean Project Structure
       run: |
-        # Force remove any broken or partial layout directories to prevent cache clashing
+        # Clear legacy structures to prevent cache interference
         rm -rf app build.gradle settings.gradle gradle.properties res
-        
-        # Build pristine native sub-directories 
         mkdir -p app/src/main/res/layout
         
         # 1. Create global background configurations
@@ -81,19 +79,31 @@ jobs:
         }
         EOF
 
-        # 5. Relocate asset layout structures into position safely
+        # 5. Relocate layout files safely
         [ -f AndroidManifest.xml ] && cp AndroidManifest.xml app/src/main/ || echo "No explicit manifest found"
-        [ -f activity_main.xml ] && cp activity_*.xml app/src/main/res/layout/ || echo "No custom activity screens found"
+        ls activity_*.xml >/dev/null 2>&1 && cp activity_*.xml app/src/main/res/layout/ || echo "No root layout xmls found"
 
-        # 6. Auto-patch XML layouts to fix any missing tools namespace declarations automatically
-        for f in app/src/main/res/layout/*.xml; do
-            if [ -f "$f" ]; then
-                if ! grep -q 'xmlns:tools' "$f"; then
-                    echo "Injecting missing tools namespace into $f"
-                    sed -i 's|xmlns:android="http://schemas.android.com/apk/res/android"|xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"|g' "$f"
-                fi
-            fi
-        done
+    - name: Ultimate Layout Sanitizer
+      shell: python
+      run: |
+        import os, re
+        target_dir = "app/src/main/res/layout"
+        if os.path.exists(target_dir):
+            for f in os.listdir(target_dir):
+                if f.endswith(".xml"):
+                    path = os.path.join(target_dir, f)
+                    with open(path, "r", encoding="utf-8") as file:
+                        content = file.read()
+                    
+                    # Erase any tools attributes that cause unbound prefix errors
+                    content = re.sub(r'\s*tools:[a-zA-Z0-9_]+="[^"]*"', '', content)
+                    content = re.sub(r"\s*tools:[a-zA-Z0-9_]+='[^']*'", '', content)
+                    content = re.sub(r'\s*xmlns:tools="[^"]*"', '', content)
+                    content = re.sub(r"\s*xmlns:tools='[^']*'", '', content)
+                    
+                    with open(path, "w", encoding="utf-8") as file:
+                        file.write(content)
+                    print(f"Successfully cleaned layout file: {f}")
 
     - name: Setup Centralized Gradle Engine
       uses: gradle/actions/setup-gradle@v3
