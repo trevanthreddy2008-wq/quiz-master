@@ -18,6 +18,7 @@ jobs:
         # Clear legacy structures to prevent cache interference
         rm -rf app build.gradle settings.gradle gradle.properties res
         mkdir -p app/src/main/res/layout
+        mkdir -p app/src/main/res/values
         
         # 1. Create global background configurations
         cat << 'EOF' > gradle.properties
@@ -79,7 +80,27 @@ jobs:
         }
         EOF
 
-        # 5. Relocate layout files safely
+        # 5. Create standard base theme configurations to prevent manifest crashes
+        cat << 'EOF' > app/src/main/res/values/themes.xml
+        <resources>
+            <style name="Theme.QuizMaster" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+                <item name="colorPrimary">#6200EE</item>
+                <item name="colorPrimaryVariant">#3700B3</item>
+                <item name="colorOnPrimary">#FFFFFF</item>
+                <item name="colorSecondary">#03DAC6</item>
+                <item name="colorSecondaryVariant">#018786</item>
+                <item name="colorOnSecondary">#000000</item>
+            </style>
+        </resources>
+        EOF
+
+        cat << 'EOF' > app/src/main/res/values/strings.xml
+        <resources>
+            <string name="app_name">QuizMaster</string>
+        </resources>
+        EOF
+
+        # 6. Relocate layout and manifest files safely
         [ -f AndroidManifest.xml ] && cp AndroidManifest.xml app/src/main/ || echo "No explicit manifest found"
         ls activity_*.xml >/dev/null 2>&1 && cp activity_*.xml app/src/main/res/layout/ || echo "No root layout xmls found"
 
