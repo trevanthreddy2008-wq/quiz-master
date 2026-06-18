@@ -177,7 +177,7 @@ jobs:
         with open("app/build.gradle", "w") as ag:
             ag.write(app_gradle_content)
 
-        # 6. Fallback asset creation for smooth compilations
+        # 6. Fallback asset creation for smooth compilations (Fixed the de.write typo here)
         with open("app/src/main/res/values/themes.xml", "w") as th:
             th.write('<resources><style name="Theme.QuizMaster" parent="Theme.MaterialComponents.DayNight.NoActionBar"><item name="colorPrimary">#6200EE</item><item name="colorSecondary">#03DAC6</item></style></resources>')
         with open("app/src/main/res/values/strings.xml", "w") as st:
